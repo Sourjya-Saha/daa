@@ -1,0 +1,95 @@
+#include <stdio.h>
+
+typedef struct {
+    int value;
+    int index;
+} Element;
+
+// Function to sort the array based on value while maintaining original indices
+void sort(Element arr[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j].value > arr[j + 1].value) {
+                Element temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}
+
+int binarySearch(Element arr[], int n, int key, int findFirst) {
+    int low = 0, high = n - 1;
+    int result = -1;
+    
+    while (low <= high) {
+        int mid = (low + high) / 2;
+        
+        if (arr[mid].value == key) {
+            result = mid;
+            if (findFirst) {
+                high = mid - 1;  // Move left to find the first occurrence
+            } else {
+                low = mid + 1;  // Move right to find the last occurrence
+            }
+        } else if (arr[mid].value < key) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+    
+    return result;
+}
+
+void findDuplicates(Element arr[], int n, int key) {
+    int firstOccurrence = binarySearch(arr, n, key, 1);
+    
+    if (firstOccurrence == -1) {
+        printf("Key %d not found in the array.\n", key);
+        return;
+    }
+
+    int lastOccurrence = binarySearch(arr, n, key, 0);
+    
+    // Calculate the number of duplicates
+    int frequency = lastOccurrence - firstOccurrence + 1;
+
+    printf("Frequency of duplicates (excluding the first occurrence): %d\n", frequency - 1);  // Exclude the first occurrence
+    
+    if (frequency > 1) {
+        printf("Positions of duplicate occurrences:\n");
+        for (int i = firstOccurrence + 1; i <= lastOccurrence; i++) {
+            printf("Position: %d\n", arr[i].index);  // Print based on original index
+        }
+    }
+}
+
+int main() {
+    int n, key;
+
+    // Input size of the array
+    printf("Enter the size of the array: ");
+    scanf("%d", &n);
+
+    Element arr[n];
+
+    // Input the array elements
+    printf("Enter %d elements for the array: \n", n);
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &arr[i].value);
+        arr[i].index = i;  // Store the original index
+    }
+
+    // Input the key to find duplicates
+    printf("Enter the key to find duplicates: ");
+    scanf("%d", &key);
+
+    // Sort the array
+    sort(arr, n);
+    
+    // Find duplicates of the key
+    findDuplicates(arr, n, key);
+    
+    return 0;
+}
