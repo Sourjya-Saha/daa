@@ -1,0 +1,120 @@
+#include <stdio.h>
+
+#define SIZE 4
+
+int board[SIZE][SIZE] = {
+    {1, 2, 3, 4},
+    {5, 6, 7, 8},
+    {9, 10, 11, 12},
+    {13, 14, 15, 0}  // 0 represents the empty space
+};
+
+// Function to display the current board state
+void displayTable() {
+    printf("\n");
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (board[i][j] == 0)
+                printf("   ");
+            else
+                printf("%2d ", board[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+// Move the empty space right
+void moveRight() {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE - 1; j++) {
+            if (board[i][j] == 0) {
+                int temp = board[i][j + 1];
+                board[i][j + 1] = 0;
+                board[i][j] = temp;
+                return;
+            }
+        }
+    }
+}
+
+// Move the empty space left
+void moveLeft() {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 1; j < SIZE; j++) {
+            if (board[i][j] == 0) {
+                int temp = board[i][j - 1];
+                board[i][j - 1] = 0;
+                board[i][j] = temp;
+                return;
+            }
+        }
+    }
+}
+
+// Move the empty space up
+void moveUp() {
+    for (int i = 1; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (board[i][j] == 0) {
+                int temp = board[i - 1][j];
+                board[i - 1][j] = 0;
+                board[i][j] = temp;
+                return;
+            }
+        }
+    }
+}
+
+// Move the empty space down
+void moveDown() {
+    for (int i = 0; i < SIZE - 1; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (board[i][j] == 0) {
+                int temp = board[i + 1][j];
+                board[i + 1][j] = 0;
+                board[i][j] = temp;
+                return;
+            }
+        }
+    }
+}
+
+int main() {
+    char move;
+    printf("15 Puzzle Game - Controls:\nW = Up, S = Down, A = Left, D = Right, Q = Quit\n");
+    displayTable();
+
+    while (1) {
+        printf("\nEnter move: ");
+        scanf(" %c", &move);
+
+        switch (move) {
+            case 'w':
+            case 'W':
+                moveUp();
+                break;
+            case 's':
+            case 'S':
+                moveDown();
+                break;
+            case 'a':
+            case 'A':
+                moveLeft();
+                break;
+            case 'd':
+            case 'D':
+                moveRight();
+                break;
+            case 'q':
+            case 'Q':
+                printf("Exiting game.\n");
+                return 0;
+            default:
+                printf("Invalid move!\n");
+        }
+
+        displayTable();
+    }
+
+    return 0;
+}
