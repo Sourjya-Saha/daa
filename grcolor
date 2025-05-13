@@ -1,0 +1,69 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define V 10  // Max vertices
+
+// Function to print the solution
+void printSolution(int color[], int n, int m) {
+    printf("\nMinimum number of colors required: %d\n", m);
+    for (int i = 0; i < n; i++)
+        printf("Vertex %d -> Color %d\n", i + 1, color[i]);
+}
+
+// Check if it's safe to assign color
+bool isSafe(int v, bool graph[V][V], int color[], int c, int n) {
+    for (int i = 0; i < n; i++)
+        if (graph[v][i] && color[i] == c)
+            return false;
+    return true;
+}
+
+// Recursive utility to solve coloring
+bool graphColoringUtil(bool graph[V][V], int m, int color[], int v, int n) {
+    if (v == n)
+        return true;
+
+    for (int c = 1; c <= m; c++) {
+        if (isSafe(v, graph, color, c, n)) {
+            color[v] = c;
+            if (graphColoringUtil(graph, m, color, v + 1, n))
+                return true;
+            color[v] = 0; // backtrack
+        }
+    }
+
+    return false;
+}
+
+// Function to find the chromatic number
+void findChromaticNumber(bool graph[V][V], int n) {
+    int color[V] = {0};
+
+    for (int m = 1; m <= n; m++) {
+        for (int i = 0; i < n; i++) color[i] = 0;
+
+        if (graphColoringUtil(graph, m, color, 0, n)) {
+            printSolution(color, n, m);
+            return;
+        }
+    }
+
+    printf("No valid coloring found.\n");
+}
+
+int main() {
+    int n;
+    bool graph[V][V];
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+
+    printf("Enter the adjacency matrix (%dx%d):\n", n, n);
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            scanf("%d", &graph[i][j]);
+
+    findChromaticNumber(graph, n);
+
+    return 0;
+}
