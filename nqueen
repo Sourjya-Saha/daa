@@ -1,0 +1,82 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+void printSolution(int **board, int N) {
+    static int solutionCount = 1;
+    printf("Solution %d:\n", solutionCount++);
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++)
+            printf(" %c ", board[i][j] ? 'Q' : '.');
+        printf("\n");
+    }
+    printf("\n");
+}
+
+bool isSafe(int **board, int row, int col, int N) {
+    int i, j;
+
+    // Check this row on the left
+    for (i = 0; i < col; i++)
+        if (board[row][i])
+            return false;
+
+    // Check upper diagonal on left
+    for (i = row, j = col; i >= 0 && j >= 0; i--, j--)
+        if (board[i][j])
+            return false;
+
+    // Check lower diagonal on left
+    for (i = row, j = col; i < N && j >= 0; i++, j--)
+        if (board[i][j])
+            return false;
+
+    return true;
+}
+
+bool solveNQUtil(int **board, int col, int N) {
+    if (col >= N) {
+        printSolution(board, N);
+        return true;
+    }
+
+    bool res = false;
+    for (int i = 0; i < N; i++) {
+        if (isSafe(board, i, col, N)) {
+            board[i][col] = 1;
+            res = solveNQUtil(board, col + 1, N) || res;
+            board[i][col] = 0; // BACKTRACK
+        }
+    }
+
+    return res;
+}
+
+void solveNQ(int N) {
+    // Dynamically allocate the board
+    int **board = (int **)malloc(N * sizeof(int *));
+    for (int i = 0; i < N; i++)
+        board[i] = (int *)calloc(N, sizeof(int)); // set all elements to 0
+
+    if (!solveNQUtil(board, 0, N))
+        printf("No solution exists.\n");
+
+    // Free memory
+    for (int i = 0; i < N; i++)
+        free(board[i]);
+    free(board);
+}
+
+int main() {
+    int N;
+    printf("Enter number of queens: ");
+    scanf("%d", &N);
+
+    if (N <= 0) {
+        printf("Please enter a valid positive number.\n");
+        return 1;
+    }
+
+    solveNQ(N);
+    return 0;
+}
