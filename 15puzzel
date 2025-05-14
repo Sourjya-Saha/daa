@@ -1,120 +1,107 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
-#define SIZE 4
+int goal[4][4]={{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,0}};
+int dx[4]={-1,1,0,0}, dy[4]={0,0,-1,1};
 
-int board[SIZE][SIZE] = {
-    {1, 2, 3, 4},
-    {5, 6, 7, 8},
-    {9, 10, 11, 12},
-    {13, 14, 15, 0}  // 0 represents the empty space
-};
+typedef struct Node{
+    int mat[4][4],x,y,level,cost;
+    struct Node *parent,*next;
+}Node;
 
-// Function to display the current board state
-void displayTable() {
-    printf("\n");
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
-            if (board[i][j] == 0)
-                printf("   ");
-            else
-                printf("%2d ", board[i][j]);
+Node *newnode(int mat[4][4],int x,int y,int newx,int newy,int level,Node *parent){
+    Node *node=(Node *)malloc(sizeof(Node));
+    memcpy(node->mat,mat,sizeof(node->mat));
+    int t=node->mat[x][y];
+    node->mat[x][y]=node->mat[newx][newy];
+    node->mat[newx][newy]=t;
+    node->x=newx; node->y=newy; node->level=level; node->cost=0;
+    node->parent=parent; node->next=NULL;
+    return node;
+}
+
+int dist(int mat[4][4]){
+    int ans=0;
+    for(int i=0;i<4;i++){
+        for(int j=0;j<4;j++){
+            if(mat[i][j]==0) continue;
+            int val=mat[i][j]-1;
+            int goalx=val%4, goaly=val/4;
+            ans+=abs(goalx-j)+abs(goaly-i);
+        }
+    }
+    return ans;
+}
+
+void printmat(int mat[4][4]){
+    for(int i=0;i<4;i++){
+        for(int j=0;j<4;j++){
+            if(mat[i][j]==0) printf(" ");
+            else printf("%d ",mat[i][j]);
         }
         printf("\n");
     }
+    printf("-----------\n");
 }
 
-// Move the empty space right
-void moveRight() {
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE - 1; j++) {
-            if (board[i][j] == 0) {
-                int temp = board[i][j + 1];
-                board[i][j + 1] = 0;
-                board[i][j] = temp;
-                return;
+int issafe(int x,int y){ return x<4&&y<4&&x>=0&&y>=0; }
+
+int isgoal(int mat[4][4]){
+    for(int i=0;i<4;i++) for(int j=0;j<4;j++) if(mat[i][j]!=goal[i][j]) return 0;
+    return 1;
+}
+
+void push(Node **head,Node *node){
+    if(!(*head)||node->cost<(*head)->cost){
+        node->next=(*head); (*head)=node;
+    }else{
+        Node* curr=*head;
+        while(curr->next&&curr->next->cost<=node->cost) curr=curr->next;
+        node->next=curr->next; curr->next=node;
+    }
+}
+
+Node* pop(Node **head){
+    if(!(*head)) return NULL;
+    Node *t=*head; *head=(*head)->next;
+    return t;
+}
+
+void printpath(Node *node){
+    if(!node) return;
+    printpath(node->parent); printmat(node->mat);
+}
+
+void solve(int initial[4][4],int x,int y){
+    Node *openlist=NULL;
+    Node *node=newnode(initial,x,y,x,y,0,NULL);
+    node->cost=dist(node->mat);
+    push(&openlist,node);
+    while(openlist){
+        Node *curr=pop(&openlist);
+        if(isgoal(curr->mat)){
+            printf("Solved in %d steps!\n\n",curr->level);
+            printpath(curr);
+            return;
+        }
+        for(int i=0;i<4;i++){
+            int newx=curr->x+dx[i], newy=curr->y+dy[i];
+            if(issafe(newx,newy)){
+                Node *child=newnode(curr->mat,curr->x,curr->y,newx,newy,curr->level+1,curr);
+                child->cost=dist(child->mat)+child->level;
+                push(&openlist,child);
             }
         }
     }
+    printf("No soln found\n");
 }
 
-// Move the empty space left
-void moveLeft() {
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 1; j < SIZE; j++) {
-            if (board[i][j] == 0) {
-                int temp = board[i][j - 1];
-                board[i][j - 1] = 0;
-                board[i][j] = temp;
-                return;
-            }
-        }
-    }
-}
-
-// Move the empty space up
-void moveUp() {
-    for (int i = 1; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
-            if (board[i][j] == 0) {
-                int temp = board[i - 1][j];
-                board[i - 1][j] = 0;
-                board[i][j] = temp;
-                return;
-            }
-        }
-    }
-}
-
-// Move the empty space down
-void moveDown() {
-    for (int i = 0; i < SIZE - 1; i++) {
-        for (int j = 0; j < SIZE; j++) {
-            if (board[i][j] == 0) {
-                int temp = board[i + 1][j];
-                board[i + 1][j] = 0;
-                board[i][j] = temp;
-                return;
-            }
-        }
-    }
-}
-
-int main() {
-    char move;
-    printf("15 Puzzle Game - Controls:\nW = Up, S = Down, A = Left, D = Right, Q = Quit\n");
-    displayTable();
-
-    while (1) {
-        printf("\nEnter move: ");
-        scanf(" %c", &move);
-
-        switch (move) {
-            case 'w':
-            case 'W':
-                moveUp();
-                break;
-            case 's':
-            case 'S':
-                moveDown();
-                break;
-            case 'a':
-            case 'A':
-                moveLeft();
-                break;
-            case 'd':
-            case 'D':
-                moveRight();
-                break;
-            case 'q':
-            case 'Q':
-                printf("Exiting game.\n");
-                return 0;
-            default:
-                printf("Invalid move!\n");
-        }
-
-        displayTable();
-    }
-
+int main(){
+    int initial[4][4]={{1,2,3,4},{5,6,0,8},{9,10,7,11},{13,14,15,12}};
+    int x,y;
+    for(int i=0;i<4;++i) for(int j=0;j<4;++j) if(initial[i][j]==0) x=i,y=j;
+    solve(initial,x,y);
     return 0;
 }
